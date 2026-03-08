@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
-/* Path: partials/navbar.php */
+/*
+ * Path: partials/navbar.php
+ * 說明：全站共用上導覽列，顯示 LOGO、頁面標題、選單與登出入口。
+ */
 
 $currentPage = $currentPage ?? '';
 $userName    = $userName ?? '使用者';
@@ -10,9 +13,18 @@ $userRole    = $userRole ?? 'USER';
 <header class="topbar">
     <div class="container topbar__inner">
         <div class="topbar__brand">
-            <div class="topbar__logo"></div>
-            <div class="topbar__title">
-                <?= htmlspecialchars($pageTitle ?? 'Bingo Analysis', ENT_QUOTES, 'UTF-8') ?>
+            <a href="<?= $baseUrl ?>/index.php" class="topbar__logo-link" aria-label="回到主儀表板">
+                <img
+                    src="<?= $baseUrl ?>/assets/img/logo.png"
+                    alt="logo"
+                    class="topbar__logo-img"
+                >
+            </a>
+
+            <div class="topbar__title-wrap">
+                <div class="topbar__title">
+                    <?= htmlspecialchars($pageTitle ?? 'Bingo Analysis', ENT_QUOTES, 'UTF-8') ?>
+                </div>
             </div>
         </div>
 

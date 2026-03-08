@@ -1,3 +1,8 @@
+/*
+ * Path: assets/css/navbar.css
+ * 說明：上導覽列樣式，包含 LOGO、標題、選單按鈕與下拉導覽區塊。
+ */
+
 .topbar {
   position: fixed;
   top: 0;
@@ -25,12 +30,22 @@
   min-width: 0;
 }
 
-.topbar__logo {
-  width: 36px;
+.topbar__logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar__logo-img {
+  display: block;
+  width: auto;
   height: 36px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  box-shadow: var(--glow-primary);
+  object-fit: contain;
+}
+
+.topbar__title-wrap {
+  min-width: 0;
 }
 
 .topbar__title {

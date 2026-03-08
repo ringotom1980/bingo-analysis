@@ -1,3 +1,8 @@
+/*
+ * Path: assets/css/forms.css
+ * 說明：表單、按鈕、登入頁 LOGO 區塊與輸入欄位共用樣式。
+ */
+
 .form-group + .form-group {
   margin-top: var(--space-4);
 }
@@ -92,4 +97,29 @@
   color: #06101d;
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   box-shadow: var(--glow-accent);
+}
+
+/* ===== login ===== */
+
+.login-card {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.login-card__head {
+  text-align: center;
+}
+
+.login-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.login-logo-img {
+  display: block;
+  width: auto;
+  height: 88px;
+  object-fit: contain;
 }

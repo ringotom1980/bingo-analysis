@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
-/* Path: login.php */
+/*
+ * Path: login.php
+ * 說明：系統登入頁，提供帳號密碼登入，載入共用 header/footer，並顯示共用 LOGO。
+ */
 
 require_once __DIR__ . '/services/auth_service.php';
 
@@ -21,9 +24,16 @@ require __DIR__ . '/partials/header.php';
 <main class="page-shell">
     <div class="container">
         <section class="section">
-            <div class="card">
-                <div class="card__head">
-                    <h1 class="typ-h1 mb-0">登入系統</h1>
+            <div class="card login-card">
+                <div class="card__head login-card__head">
+                    <div class="login-logo-wrap">
+                        <img
+                            src="<?= $baseUrl ?>/assets/img/logo.png"
+                            alt="logo"
+                            class="login-logo-img"
+                        >
+                    </div>
+                    <h1 class="typ-h1 mb-0">發財登入系統</h1>
                 </div>
 
                 <div class="card__body">
