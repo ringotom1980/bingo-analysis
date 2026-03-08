@@ -1,3 +1,8 @@
+/*
+ * Path: assets/css/mobile.css
+ * 說明：
+ */
+
 @media (min-width: 768px) {
   .grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));

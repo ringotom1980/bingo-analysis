@@ -1,3 +1,8 @@
+/*
+ * Path: assets/css/typography.css
+ * 說明：
+ */
+
 .typ-display {
   font-size: var(--fs-display);
   font-weight: var(--fw-bold);

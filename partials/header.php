@@ -34,6 +34,7 @@ $assetTs   = $assetTs ?? time();
     <link rel="stylesheet" href="<?= $baseUrl ?>/assets/css/balls.css?v=<?= $assetTs ?>">
     <link rel="stylesheet" href="<?= $baseUrl ?>/assets/css/animations.css?v=<?= $assetTs ?>">
     <link rel="stylesheet" href="<?= $baseUrl ?>/assets/css/mobile.css?v=<?= $assetTs ?>">
+    <link rel="stylesheet" href="<?= $baseUrl ?>/assets/css/dashboard.css?v=<?= $assetTs ?>">
 </head>
 <body>
 <script>

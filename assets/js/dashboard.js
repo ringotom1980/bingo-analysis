@@ -125,9 +125,9 @@
     var json = await fetchJson('api/bingo_latest.php');
     var data = json.data || json;
 
-    safeText($('latestIssueNo'), data.issue_no || data.issue || '--');
-    safeText($('latestDrawTime'), formatDateTime(data.draw_time || data.draw_date || data.created_at || '--'));
-    renderBalls('latestBalls', data.numbers || [], '');
+    safeText($('bingoIssue'), data.issue_no || data.issue || '--');
+    safeText($('bingoTime'), formatDateTime(data.draw_time || data.draw_date || data.created_at || '--'));
+    renderBalls('bingoBalls', data.numbers || [], '');
     safeText($('latestUpdatedAt'), formatDateTime(data.updated_at || data.draw_time || data.created_at || '--'));
   }
 
