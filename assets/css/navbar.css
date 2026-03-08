@@ -1,0 +1,105 @@
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-topbar);
+  height: var(--topbar-h);
+  background: rgba(8, 17, 31, 0.82);
+  border-bottom: 1px solid var(--color-border);
+  backdrop-filter: blur(14px);
+}
+
+.topbar__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.topbar__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  box-shadow: var(--glow-primary);
+}
+
+.topbar__title {
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text);
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
+}
+
+.nav-drawer {
+  position: fixed;
+  inset: var(--topbar-h) 0 auto 0;
+  z-index: var(--z-drawer);
+  background: rgba(9, 19, 33, 0.96);
+  border-bottom: 1px solid var(--color-border);
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-standard),
+              transform var(--dur-base) var(--ease-standard);
+}
+
+.nav-drawer.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-menu {
+  padding: var(--space-3) 0;
+}
+
+.nav-menu a,
+.nav-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.nav-menu a + a,
+.nav-menu button + button,
+.nav-menu a + button,
+.nav-menu button + a {
+  border-top: 1px solid var(--color-divider);
+}

@@ -1,0 +1,51 @@
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(77,163,255,0.22); }
+  50% { box-shadow: 0 0 0 10px rgba(77,163,255,0); }
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255,255,255,0.14);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loading);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 9, 17, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.loading-overlay.is-show {
+  display: flex;
+}
+
+.fade-up {
+  animation: fadeUp var(--dur-slow) var(--ease-standard);
+}
+
+.pulse-glow {
+  animation: pulseGlow 1.6s infinite;
+}

@@ -1,0 +1,93 @@
+:root {
+  /* ===== Brand / Theme ===== */
+  --color-bg: #08111f;
+  --color-bg-soft: #0d1728;
+  --color-surface: #101c31;
+  --color-surface-2: #14223a;
+  --color-card: rgba(16, 28, 49, 0.88);
+
+  --color-primary: #4da3ff;
+  --color-primary-2: #62d0ff;
+  --color-secondary: #7a7dff;
+  --color-accent: #2df5d4;
+
+  --color-success: #2dd36f;
+  --color-warning: #ffb84d;
+  --color-danger: #ff5d73;
+  --color-info: #57b8ff;
+
+  /* ===== Text ===== */
+  --color-text: #eef4ff;
+  --color-text-soft: #c0d0ea;
+  --color-text-muted: #89a1c7;
+
+  /* ===== Border / Divider ===== */
+  --color-border: rgba(120, 166, 255, 0.18);
+  --color-divider: rgba(255, 255, 255, 0.08);
+
+  /* ===== State BG ===== */
+  --color-success-bg: rgba(45, 211, 111, 0.14);
+  --color-warning-bg: rgba(255, 184, 77, 0.14);
+  --color-danger-bg: rgba(255, 93, 115, 0.14);
+  --color-info-bg: rgba(87, 184, 255, 0.14);
+
+  /* ===== Effects ===== */
+  --shadow-sm: 0 6px 16px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.35);
+
+  --glow-primary: 0 0 0 1px rgba(77, 163, 255, 0.28), 0 0 22px rgba(77, 163, 255, 0.16);
+  --glow-accent: 0 0 0 1px rgba(45, 245, 212, 0.28), 0 0 22px rgba(45, 245, 212, 0.16);
+
+  /* ===== Radius ===== */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ===== Spacing ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  /* ===== Font ===== */
+  --font-family-base: "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-family-mono: "Consolas", "SFMono-Regular", monospace;
+
+  --fs-display: 32px;
+  --fs-h1: 24px;
+  --fs-h2: 20px;
+  --fs-h3: 17px;
+  --fs-body: 15px;
+  --fs-small: 13px;
+  --fs-tiny: 12px;
+
+  --fw-bold: 700;
+  --fw-semibold: 600;
+  --fw-medium: 500;
+  --fw-regular: 400;
+
+  /* ===== Layout ===== */
+  --topbar-h: 64px;
+  --container-w: 1200px;
+
+  /* ===== Motion ===== */
+  --ease-standard: cubic-bezier(.2,.8,.2,1);
+  --dur-fast: 160ms;
+  --dur-base: 240ms;
+  --dur-slow: 360ms;
+
+  /* ===== Z ===== */
+  --z-topbar: 1000;
+  --z-drawer: 1200;
+  --z-overlay: 1300;
+  --z-toast: 1400;
+  --z-loading: 1500;
+}

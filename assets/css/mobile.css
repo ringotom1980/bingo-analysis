@@ -1,0 +1,28 @@
+@media (min-width: 768px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .topbar__title {
+    font-size: 17px;
+  }
+
+  .container {
+    width: min(100% - 32px, var(--container-w));
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --fs-display: 36px;
+    --fs-h1: 28px;
+  }
+
+  .page-shell {
+    padding-top: calc(var(--topbar-h) + 8px);
+  }
+}
