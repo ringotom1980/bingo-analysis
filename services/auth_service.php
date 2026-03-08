@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /* Path: services/auth_service.php */
@@ -46,13 +47,23 @@ function auth_login_attempt(string $username, string $password): array
 
     session_regenerate_id(true);
 
-    $_SESSION['auth_user'] = [
-        'id'           => (int)$user['id'],
-        'username'     => (string)$user['username'],
-        'display_name' => (string)$user['display_name'],
-        'role'         => (string)$user['role'],
-    ];
+    /* 更新最後登入時間 */
+    $stmt = $pdo->prepare("
+    UPDATE users
+    SET last_login_at = NOW()
+    WHERE id = ?
+");
+    $stmt->execute([$user['id']]);
 
+    $user['last_login_at'] = date('Y-m-d H:i:s');
+
+    $_SESSION['auth_user'] = [
+        'id'            => (int)$user['id'],
+        'username'      => (string)$user['username'],
+        'display_name'  => (string)$user['display_name'],
+        'role'          => (string)$user['role'],
+        'last_login_at' => (string)$user['last_login_at'],
+    ];
     return $_SESSION['auth_user'];
 }
 
