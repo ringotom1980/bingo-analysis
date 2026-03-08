@@ -1,0 +1,49 @@
+name: Deploy to Hostinger FTP
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Remove sensitive files (safety)
+        run: |
+          rm -f .env
+          rm -f .env.local
+          rm -f .env.production
+          rm -f .env.staging
+
+      - name: Generate version.txt
+        run: |
+          echo "v$(date +'%Y%m%d.%H%M')+g$(git rev-parse --short HEAD)" > version.txt
+          cat version.txt
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+
+          local-dir: ./
+          server-dir: /home/u327657097/domains/shop.jinghong.pw/public_html/
+
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.vscode/**
+            **/.idea/**
+            **/node_modules/**
+            **/.DS_Store
+            **/Thumbs.db
+            **/*.log
+            **/.env
+            **/.env.*
