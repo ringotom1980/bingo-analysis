@@ -86,6 +86,7 @@ try {
     $numbersString = implode(',', array_map(function ($n) {
         return str_pad((string)$n, 2, '0', STR_PAD_LEFT);
     }, $bigShowOrder));
+    $drawAt = date('Y-m-d H:i:s');
 
     if ($drawTerm <= 0) {
         throw new RuntimeException('drawTerm 無效');
@@ -107,10 +108,10 @@ try {
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("
-        INSERT INTO bingo_results (draw_term, numbers)
-        VALUES (?, ?)
+        INSERT INTO bingo_results (draw_term, draw_at, numbers)
+        VALUES (?, ?, ?)
     ");
-    $stmt->execute([$drawTerm, $numbersString]);
+    $stmt->execute([$drawTerm, $drawAt, $numbersString]);
 
     $stmtDraw = $pdo->prepare("
         INSERT INTO bingo_draw_numbers (draw_term, number)
