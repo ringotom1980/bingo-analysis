@@ -31,10 +31,8 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT }}
-
           local-dir: ./
-          server-dir: /home/u327657097/domains/shop.jinghong.pw/public_html/
-
+          server-dir: ./
           exclude: |
             **/.git*
             **/.git*/**
