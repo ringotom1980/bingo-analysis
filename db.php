@@ -1,6 +1,6 @@
 <?php
 /* Path: db.php
- * 說明：讀取專案根目錄 .env，建立 PDO 連線
+ * 說明：讀取專案根目錄 .env，建立 PDO 連線-測試
  */
 
 declare(strict_types=1);
