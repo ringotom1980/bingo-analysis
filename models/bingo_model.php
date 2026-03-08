@@ -75,16 +75,27 @@ function bingo_get_cold(PDO $pdo): array
 
 function bingo_get_miss(PDO $pdo): array
 {
-    return $pdo->query("
-        SELECT number,
-        MAX(draw_term) last_hit
-        FROM bingo_draw_numbers
-        GROUP BY number
-        ORDER BY last_hit ASC
+    $sql = "
+        SELECT
+            s.number,
+            COALESCE(latest.latest_term - hit.last_hit, latest.latest_term) AS miss,
+            hit.last_hit
+        FROM bingo_statistics s
+        CROSS JOIN (
+            SELECT MAX(draw_term) AS latest_term
+            FROM bingo_results
+        ) latest
+        LEFT JOIN (
+            SELECT number, MAX(draw_term) AS last_hit
+            FROM bingo_draw_numbers
+            GROUP BY number
+        ) hit ON hit.number = s.number
+        ORDER BY miss DESC, s.number ASC
         LIMIT 5
-    ")->fetchAll();
-}
+    ";
 
+    return $pdo->query($sql)->fetchAll();
+}
 function bingo_today_count(PDO $pdo): int
 {
     $row = $pdo->query("

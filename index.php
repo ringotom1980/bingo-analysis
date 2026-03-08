@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /*
  * Path: index.php
- * 說明：主儀表板（UI升級版）
+ * 說明：主儀表板（Professional Dashboard UI）
  */
 
 require_once __DIR__ . '/services/auth_service.php';
@@ -62,43 +62,16 @@ require __DIR__ . '/partials/navbar.php';
                         </div>
 
                     </div>
+
                 </article>
 
 
-                <!-- 模組入口 -->
-                <article class="card">
+
+                <!-- 賓果賓果 -->
+                <article class="card lottery-card">
 
                     <div class="card__head">
-                        <h2 class="typ-h2 mb-0">分析模組</h2>
-                    </div>
-
-                    <div class="card__body">
-
-                        <div class="module-links">
-
-                            <a class="btn btn-primary" href="<?= $baseUrl ?>/bingo.php">
-                                賓果賓果分析
-                            </a>
-
-                            <button class="btn btn-secondary" disabled>
-                                威力彩（建置中）
-                            </button>
-
-                            <button class="btn btn-secondary" disabled>
-                                大樂透（建置中）
-                            </button>
-
-                        </div>
-
-                    </div>
-                </article>
-
-
-                <!-- 賓果賓果最新 -->
-                <article class="card">
-
-                    <div class="card__head">
-                        <h2 class="typ-h2 mb-0">賓果賓果｜最新一期</h2>
+                        <h2 class="typ-h2 mb-0">賓果賓果</h2>
                     </div>
 
                     <div class="card__body">
@@ -106,7 +79,7 @@ require __DIR__ . '/partials/navbar.php';
                         <div class="dashboard-kpi">
 
                             <div>
-                                <div class="typ-small">期數</div>
+                                <div class="typ-small">最新期數</div>
                                 <div class="typ-h3" id="bingoIssue">--</div>
                             </div>
 
@@ -117,49 +90,76 @@ require __DIR__ . '/partials/navbar.php';
 
                         </div>
 
-                        <div class="balls-wrap" id="bingoBalls">
+                        <div class="balls-wrap lottery-balls" id="bingoBalls">
                             <span class="typ-small">載入中...</span>
                         </div>
 
                     </div>
 
+                    <div class="card__foot">
+
+                        <a class="btn btn-primary" href="<?= $baseUrl ?>/bingo.php">
+                            進入分析
+                        </a>
+
+                    </div>
+
                 </article>
 
 
-                <!-- 威力彩最新 -->
-                <article class="card">
+
+                <!-- 威力彩 -->
+                <article class="card lottery-card">
 
                     <div class="card__head">
-                        <h2 class="typ-h2 mb-0">威力彩｜最新一期</h2>
+                        <h2 class="typ-h2 mb-0">威力彩</h2>
                     </div>
 
                     <div class="card__body">
 
                         <div class="typ-small">
-                            尚未建置資料來源
+                            資料來源尚未建置
                         </div>
+
+                    </div>
+
+                    <div class="card__foot">
+
+                        <button class="btn btn-secondary" disabled>
+                            即將推出
+                        </button>
 
                     </div>
 
                 </article>
 
 
-                <!-- 大樂透最新 -->
-                <article class="card">
+
+                <!-- 大樂透 -->
+                <article class="card lottery-card">
 
                     <div class="card__head">
-                        <h2 class="typ-h2 mb-0">大樂透｜最新一期</h2>
+                        <h2 class="typ-h2 mb-0">大樂透</h2>
                     </div>
 
                     <div class="card__body">
 
                         <div class="typ-small">
-                            尚未建置資料來源
+                            資料來源尚未建置
                         </div>
 
                     </div>
 
+                    <div class="card__foot">
+
+                        <button class="btn btn-secondary" disabled>
+                            即將推出
+                        </button>
+
+                    </div>
+
                 </article>
+
 
 
                 <!-- 系統狀態 -->
@@ -194,23 +194,6 @@ require __DIR__ . '/partials/navbar.php';
 
                 </article>
 
-
-                <!-- 最近開獎 -->
-                <article class="card">
-
-                    <div class="card__head">
-                        <h2 class="typ-h2 mb-0">最近開獎</h2>
-                    </div>
-
-                    <div class="card__body">
-
-                        <div class="history-list" id="recentHistory">
-                            <div class="typ-small">載入中...</div>
-                        </div>
-
-                    </div>
-
-                </article>
 
             </div>
 
