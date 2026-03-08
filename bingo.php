@@ -1,11 +1,20 @@
 <?php
 declare(strict_types=1);
 
+/* Path: bingo.php */
+
+require_once __DIR__ . '/services/auth_service.php';
+auth_require_login();
+
+$user = auth_user();
+
 $pageTitle   = '賓果賓果分析';
 $currentPage = 'bingo';
 $baseUrl     = '';
-$userName    = '管理者';
-$userRole    = 'ADMIN';
+$assetTs     = time();
+$pageJs      = 'bingo.js';
+$userName    = $user['display_name'] ?? '';
+$userRole    = $user['role'] ?? 'USER';
 
 require __DIR__ . '/partials/header.php';
 require __DIR__ . '/partials/navbar.php';

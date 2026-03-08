@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+/* Path: partials/navbar.php */
+
 $currentPage = $currentPage ?? '';
 $userName    = $userName ?? '使用者';
 $userRole    = $userRole ?? 'USER';

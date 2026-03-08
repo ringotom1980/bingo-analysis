@@ -1,11 +1,20 @@
 <?php
 declare(strict_types=1);
 
+/* Path: users.php */
+
+require_once __DIR__ . '/services/auth_service.php';
+auth_require_admin();
+
+$user = auth_user();
+
 $pageTitle   = '使用者管理';
 $currentPage = 'users';
 $baseUrl     = '';
-$userName    = '管理者';
-$userRole    = 'ADMIN';
+$assetTs     = time();
+$pageJs      = 'users.js';
+$userName    = $user['display_name'] ?? '';
+$userRole    = $user['role'] ?? 'ADMIN';
 
 require __DIR__ . '/partials/header.php';
 require __DIR__ . '/partials/navbar.php';

@@ -1,8 +1,19 @@
 <?php
 declare(strict_types=1);
 
+/* Path: login.php */
+
+require_once __DIR__ . '/services/auth_service.php';
+
+if (auth_check()) {
+    header('Location: /index.php');
+    exit;
+}
+
 $pageTitle = '登入';
-$baseUrl = '';
+$baseUrl   = '';
+$assetTs   = time();
+$pageJs    = 'auth.js';
 
 require __DIR__ . '/partials/header.php';
 ?>
@@ -14,24 +25,49 @@ require __DIR__ . '/partials/header.php';
                 <div class="card__head">
                     <h1 class="typ-h1 mb-0">登入系統</h1>
                 </div>
+
                 <div class="card__body">
-                    <form id="loginForm" class="stack-4">
+                    <form id="loginForm" class="stack-4" novalidate>
                         <div class="form-group">
                             <label class="form-label" for="username">帳號</label>
-                            <input class="input" id="username" name="username" type="text" autocomplete="username">
+                            <input
+                                class="input"
+                                id="username"
+                                name="username"
+                                type="text"
+                                autocomplete="username"
+                                required
+                            >
                         </div>
 
                         <div class="form-group">
                             <label class="form-label" for="password">密碼</label>
-                            <input class="input" id="password" name="password" type="password" autocomplete="current-password">
+                            <input
+                                class="input"
+                                id="password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                            >
                         </div>
 
-                        <button type="submit" class="btn btn--primary">登入</button>
+                        <div id="loginMsg" class="typ-small typ-muted"></div>
+
+                        <button type="submit" class="btn btn--primary" id="loginSubmit">登入</button>
                     </form>
                 </div>
             </div>
         </section>
     </div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.Auth) {
+        window.Auth.bindLoginForm('#loginForm');
+    }
+});
+</script>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
