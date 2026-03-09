@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -26,6 +27,7 @@ function bingo_algo_build_features(array $draws): array
             'zone'            => bingo_algo_number_zone($n),
             'tail'            => $n % 10,
             'pair_strength'   => 0,
+            'weighted_hot'    => 0.0,
             'score'           => 0.0,
             'score_breakdown' => [],
         ];
@@ -71,10 +73,21 @@ function bingo_algo_build_features(array $draws): array
         $features[$n]['streak'] = bingo_algo_calc_streak($draws, $n);
         $features[$n]['miss']   = bingo_algo_calc_miss($draws, $n);
 
-        $features[$n]['uptrend_value'] = $features[$n]['hit_10'] - ($features[$n]['hit_30'] / 3);
-        $features[$n]['downtrend_value'] = ($features[$n]['hit_30'] / 3) - $features[$n]['hit_10'];
-    }
+        $seg10   = (int)$features[$n]['hit_10'];
+        $seg11_30 = max(0, (int)$features[$n]['hit_30'] - (int)$features[$n]['hit_10']);
+        $seg31_50 = max(0, (int)$features[$n]['hit_50'] - (int)$features[$n]['hit_30']);
 
+        $features[$n]['weighted_hot'] =
+            ($seg10 * 3.0) +
+            ($seg11_30 * 2.0) +
+            ($seg31_50 * 1.0);
+
+        $features[$n]['uptrend_value'] =
+            round((float)$features[$n]['hit_10'] - ((float)$features[$n]['hit_50'] / 5), 4);
+
+        $features[$n]['downtrend_value'] =
+            round(((float)$features[$n]['hit_50'] / 5) - (float)$features[$n]['hit_10'], 4);
+    }
     return $features;
 }
 
@@ -341,12 +354,11 @@ function bingo_algo_score_numbers(array $features, array $context, string $mode 
     $pairValues = [];
 
     foreach ($features as $number => $row) {
-        $hitValues[$number] = (float)$row['hit_count'];
+        $hitValues[$number] = (float)($row['weighted_hot'] ?? 0);
         $uptrendValues[$number] = (float)$row['uptrend_value'];
         $downtrendValues[$number] = (float)$row['downtrend_value'];
         $pairValues[$number] = (float)$row['pair_strength'];
     }
-
     $hotRankMap = bingo_algo_normalize_rank_map($hitValues, true);
     $uptrendRankMap = bingo_algo_normalize_rank_map($uptrendValues, true);
     $downtrendRankMap = bingo_algo_normalize_rank_map($downtrendValues, true);
@@ -712,9 +724,15 @@ function bingo_algo_build_top_rows(array $features, string $field, int $limit = 
     $rows = [];
 
     foreach ($features as $row) {
+        $value = $row[$field] ?? 0;
+
+        if (is_numeric($value)) {
+            $value = round((float)$value, 2);
+        }
+
         $rows[] = [
             'number' => (int)$row['number'],
-            $field   => $row[$field] ?? 0,
+            $field   => $value,
         ];
     }
 

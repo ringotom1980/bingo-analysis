@@ -208,8 +208,8 @@
         renderBallStatList('coldList', data.cold_top10 || [], 'hit_count', 'ball-cold', '次');
         renderBallStatList('missList', data.miss_top10 || [], 'miss', 'ball-miss', '期');
         renderBallStatList('streakList', data.streak_top10 || [], 'streak', 'ball-selected', '期');
-        renderBallStatList('uptrendList', data.uptrend_top10 || [], 'uptrend_value', 'ball-hot', '');
-        renderBallStatList('downtrendList', data.downtrend_top10 || [], 'downtrend_value', 'ball-cold', '');
+        renderBallOnlyList('uptrendList', data.uptrend_top10 || [], 'ball-hot');
+        renderBallOnlyList('downtrendList', data.downtrend_top10 || [], 'ball-cold');
 
         renderTagList('pairStatsList', data.pair_stats || [], function (row) {
             return '<span class="typ-body">' + escapeHtml(row.pair || '--') + '</span>' +
@@ -247,6 +247,29 @@
 
         el.innerHTML = list.map(function (item) {
             return rankedBall(item, valueKey, ballClass, suffix);
+        }).join('');
+    }
+
+    function renderBallOnlyList(id, list, ballClass) {
+        var el = $(id);
+        if (!el) return;
+
+        list = safeArray(list);
+
+        if (!list.length) {
+            el.innerHTML = '<div class="typ-small">無資料</div>';
+            return;
+        }
+
+        el.innerHTML = list.map(function (item) {
+            var number = item && item.number != null ? parseInt(item.number, 10) : 0;
+            if (!number) return '';
+
+            return (
+                '<div class="ball-stat">' +
+                ball(number, ballClass) +
+                '</div>'
+            );
         }).join('');
     }
 
