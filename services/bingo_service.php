@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 /*
  * Path: services/bingo_service.php
- * 說明：賓果賓果服務層，負責最新一期、歷史開獎、區間分析與最佳組合分析。
+ * 說明：賓果賓果服務層，負責最新一期、歷史開獎、區間分析與系統推薦分析。
  */
 
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../models/bingo_model.php';
+require_once __DIR__ . '/bingo_algorithm_service.php';
 
 function bingo_service_latest(): array
 {
@@ -57,34 +58,15 @@ function bingo_service_history(int $limit = 10, ?int $startTerm = null, ?int $en
     ];
 }
 
-function bingo_service_analysis(int $range = 10): array
+function bingo_service_analysis(int $range = 100, int $star = 5, string $mode = 'balanced'): array
 {
     global $pdo;
 
-    if (!in_array($range, [10, 30, 50, 100], true)) {
+    if ($range < 10) {
         $range = 10;
     }
-
-    $draws = bingo_get_recent_draws($pdo, $range);
-
-    return [
-        'range'      => $range,
-        'hot_top10'  => bingo_build_hot_top($draws, 10),
-        'cold_top10' => bingo_build_cold_top($draws, 10),
-        'miss_top10' => bingo_get_miss_top($pdo, 10),
-        'stats'      => bingo_build_basic_stats($draws)
-    ];
-}
-
-function bingo_service_combo_analysis(int $hours = 3, int $star = 5): array
-{
-    global $pdo;
-
-    if ($hours < 1) {
-        $hours = 1;
-    }
-    if ($hours > 5) {
-        $hours = 5;
+    if ($range > 500) {
+        $range = 500;
     }
 
     if ($star < 1) {
@@ -94,17 +76,71 @@ function bingo_service_combo_analysis(int $hours = 3, int $star = 5): array
         $star = 10;
     }
 
-    $draws = bingo_get_draws_by_recent_hours($pdo, $hours);
+    $draws = bingo_get_recent_draws($pdo, $range);
 
-    $recommended = bingo_build_combo_recommendation($draws, $star);
-    $traceList   = bingo_build_combo_trace($draws, $recommended);
-    $hitStats    = bingo_build_combo_hit_stats($traceList, $star);
+    if (empty($draws)) {
+        return [
+            'range' => $range,
+            'star' => $star,
+            'hot_top10' => [],
+            'cold_top10' => [],
+            'streak_top10' => [],
+            'miss_top10' => [],
+            'odd_even_stats' => [
+                'odd_count' => 0,
+                'even_count' => 0,
+            ],
+            'big_small_stats' => [
+                'small_count' => 0,
+                'big_count' => 0,
+            ],
+            'uptrend_top10' => [],
+            'downtrend_top10' => [],
+            'pair_stats' => [],
+            'tail_stats' => [],
+            'recommended_numbers' => [],
+            'recommended_reasons' => [],
+            'recommended_score' => 0,
+            'hit_summary' => [],
+            'hit_trace' => [],
+        ];
+    }
+
+    $featuresAssoc = bingo_algo_build_features($draws);
+    $featuresList  = array_values($featuresAssoc);
+
+    $basicStats = bingo_algo_build_basic_stats($draws);
+    $recommend  = bingo_algo_recommend($draws, $star, $mode);
+    $backtest   = bingo_algo_backtest($recommend['recommended_numbers'], $draws, $star);
 
     return [
-        'hours'               => $hours,
-        'star'                => $star,
-        'recommended_numbers' => $recommended,
-        'hit_stats'           => $hitStats,
-        'trace_list'          => $traceList
+        'range' => $range,
+        'star'  => $star,
+
+        'hot_top10'      => bingo_algo_build_top_rows($featuresList, 'hit_count', 10, true),
+        'cold_top10'     => bingo_algo_build_top_rows($featuresList, 'hit_count', 10, false),
+        'streak_top10'   => bingo_algo_build_top_rows($featuresList, 'streak', 10, true),
+        'miss_top10'     => bingo_algo_build_top_rows($featuresList, 'miss', 10, true),
+        'uptrend_top10'  => bingo_algo_build_top_rows($featuresList, 'uptrend_value', 10, true),
+        'downtrend_top10'=> bingo_algo_build_top_rows($featuresList, 'downtrend_value', 10, true),
+
+        'odd_even_stats' => [
+            'odd_count'  => $basicStats['odd_count'] ?? 0,
+            'even_count' => $basicStats['even_count'] ?? 0,
+        ],
+        'big_small_stats' => [
+            'small_count' => $basicStats['small_count'] ?? 0,
+            'big_count'   => $basicStats['big_count'] ?? 0,
+        ],
+
+        'pair_stats' => $recommend['pair_stats'] ?? [],
+        'tail_stats' => $recommend['tail_stats'] ?? [],
+
+        'recommended_numbers'  => $recommend['recommended_numbers'] ?? [],
+        'recommended_reasons'  => $recommend['recommended_reasons'] ?? [],
+        'recommended_score'    => $recommend['recommended_score'] ?? 0,
+
+        'hit_summary' => $backtest['hit_summary'] ?? [],
+        'hit_trace'   => $backtest['hit_trace'] ?? [],
     ];
 }
