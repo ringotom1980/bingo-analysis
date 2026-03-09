@@ -14,6 +14,7 @@
         userStar: 5,
         userSelectedNumbers: [],
         userComboList: [],
+        userHitExpanded: false,
 
         latestData: null,
         historyData: []
@@ -348,25 +349,41 @@
         );
     }
 
+    function renderHitStars(hit) {
+        hit = parseInt(hit, 10) || 0;
+
+        if (hit <= 0) {
+            return '0';
+        }
+
+        return '★'.repeat(hit);
+    }
+
     function renderUserHitTrace() {
         var el = $('userHitTrace');
+        var actionsEl = $('userHitTraceActions');
         if (!el) return;
 
         var sourceList = [];
+        var mapped = [];
+        var showList = [];
+        var maxVisible = 12;
 
         if (state.analysisData && safeArray(state.analysisData.hit_trace).length) {
             sourceList = safeArray(state.analysisData.hit_trace);
         } else {
             el.innerHTML = '<div class="typ-small">無資料</div>';
+            if (actionsEl) actionsEl.innerHTML = '';
             return;
         }
 
         if (!state.userSelectedNumbers.length) {
             el.innerHTML = '<div class="typ-small">請先選號</div>';
+            if (actionsEl) actionsEl.innerHTML = '';
             return;
         }
 
-        el.innerHTML = sourceList.map(function (row) {
+        mapped = sourceList.map(function (row) {
             var drawNumbers = normalizeNumbers(row.numbers || []);
             var hit = 0;
 
@@ -376,13 +393,33 @@
                 }
             });
 
+            return {
+                draw_term: row.draw_term || '--',
+                hit: hit
+            };
+        });
+
+        showList = state.userHitExpanded ? mapped : mapped.slice(0, maxVisible);
+
+        el.innerHTML = showList.map(function (row) {
             return (
                 '<div class="bingo-trace-row">' +
-                '<span class="typ-body">第 ' + escapeHtml(row.draw_term || '--') + ' 期</span>' +
-                '<span class="typ-small">命中 ' + escapeHtml(hit) + ' 星</span>' +
+                '<span class="typ-body">第 ' + escapeHtml(row.draw_term) + ' 期</span>' +
+                '<span class="typ-small">' + escapeHtml(renderHitStars(row.hit)) + '</span>' +
                 '</div>'
             );
         }).join('');
+
+        if (actionsEl) {
+            if (mapped.length > maxVisible) {
+                actionsEl.innerHTML =
+                    '<button class="btn btn--secondary" id="btnToggleUserHitTrace" type="button">' +
+                    (state.userHitExpanded ? '收合' : '展開全部') +
+                    '</button>';
+            } else {
+                actionsEl.innerHTML = '';
+            }
+        }
     }
 
     function renderUserComboResults() {
@@ -420,6 +457,7 @@
         }
 
         state.userSelectedNumbers = uniqueNumbers(state.userSelectedNumbers, 10);
+        state.userHitExpanded = false;
         renderUserBallBoard();
         renderUserSelectedBalls();
         renderUserHitTrace();
@@ -535,6 +573,7 @@
         if ($('userStarSelect')) {
             $('userStarSelect').addEventListener('change', function () {
                 state.userStar = parseInt(this.value || '5', 10) || 5;
+                state.userHitExpanded = false;
                 renderUserHitTrace();
             });
         }
@@ -561,6 +600,16 @@
                 clearUserCombos();
             });
         }
+
+        document.addEventListener('click', function (e) {
+            var target = e.target;
+            if (!target || target.id !== 'btnToggleUserHitTrace') {
+                return;
+            }
+
+            state.userHitExpanded = !state.userHitExpanded;
+            renderUserHitTrace();
+        });
     }
 
     function bindHistorySearch() {

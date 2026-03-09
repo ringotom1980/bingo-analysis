@@ -96,21 +96,21 @@ require __DIR__ . '/partials/navbar.php';
                         <div class="bingo-triple-grid">
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">熱號 TOP10<span class="typ-small">（查詢區間內出現最多）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">熱號 TOP10<span class="typ-small">（查詢區間內出現最多）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="hotList"></div>
                             </section>
 
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">冷號 TOP10<span class="typ-small">（查詢區間內出現最少）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">冷號 TOP10<span class="typ-small">（查詢區間內出現最少）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="coldList"></div>
                             </section>
 
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">未出現期數 TOP10<span class="typ-small">（距今連續未出現最多）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">未出現期數 TOP10<span class="typ-small">（距今連續未出現最多）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="missList"></div>
                             </section>
@@ -119,14 +119,14 @@ require __DIR__ . '/partials/navbar.php';
                         <div class="bingo-dual-grid">
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">連續出現期數 TOP10<span class="typ-small">（由最新期往前連續出現）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">連續出現期數 TOP10<span class="typ-small">（由最新期往前連續出現）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="streakList"></div>
                             </section>
 
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">尾數分析<span class="typ-small">（尾數 0~9 統計）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">尾數分析<span class="typ-small">（尾數 0~9 統計）</span></h3>
                                 </div>
                                 <div class="bingo-tag-list" id="tailStatsList"></div>
                             </section>
@@ -157,14 +157,14 @@ require __DIR__ . '/partials/navbar.php';
                         <div class="bingo-dual-grid">
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">升溫號 TOP10<span class="typ-small">（近10期相對近30期更活躍）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">升溫號 TOP10<span class="typ-small">（近10期相對近30期更活躍）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="uptrendList"></div>
                             </section>
 
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">降溫號 TOP10<span class="typ-small">（近10期相對近30期轉弱）</span></h3>                                    
+                                    <h3 class="typ-h3 mb-0">降溫號 TOP10<span class="typ-small">（近10期相對近30期轉弱）</span></h3>
                                 </div>
                                 <div class="balls-wrap" id="downtrendList"></div>
                             </section>
@@ -172,14 +172,14 @@ require __DIR__ . '/partials/navbar.php';
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">連號分析<span class="typ-small">（常見連號組合）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">連號分析<span class="typ-small">（常見連號組合）</span></h3>
                             </div>
                             <div class="bingo-tag-list" id="pairStatsList"></div>
                         </section>
 
                         <section class="stack-3 bingo-recommend-block">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">系統推薦最佳組合<span class="typ-small" id="analysisRecommendTitle">（推薦 5 星）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">系統推薦最佳組合<span class="typ-small" id="analysisRecommendTitle">（推薦 5 星）</span></h3>
                             </div>
 
                             <div class="balls-wrap" id="analysisRecommendedNumbers"></div>
@@ -222,28 +222,29 @@ require __DIR__ . '/partials/navbar.php';
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">球號選擇區<span class="typ-small">（可選 1~80，最多選 10 顆）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">球號選擇區<span class="typ-small">（可選 1~80，最多選 10 顆）</span></h3>
                             </div>
                             <div class="balls-wrap bingo-ball-board" id="userBallBoard"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">已選球號<span class="typ-small">（不會因每分鐘刷新被清空）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">已選球號<span class="typ-small">（不會因每分鐘刷新被清空）</span></h3>
                             </div>
                             <div class="balls-wrap" id="userSelectedBalls"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">命中分析<span class="typ-small">（依目前已選球號比對最近開獎）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">命中分析<span class="typ-small">（依目前已選球號比對最近開獎）</span></h3>
                             </div>
                             <div class="bingo-trace-list" id="userHitTrace"></div>
+                            <div class="bingo-tool-row" id="userHitTraceActions"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">組合工具<span class="typ-small">（當選號數大於玩法星數時可展開）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">組合工具<span class="typ-small">（當選號數大於玩法星數時可展開）</span></h3>
                             </div>
                             <div class="bingo-tool-row">
                                 <button class="btn btn--primary" id="btnBuildUserCombos" type="button">提供組合號碼</button>
@@ -253,7 +254,7 @@ require __DIR__ . '/partials/navbar.php';
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">組合結果<span class="typ-small">（不會因每分鐘刷新被清空）</span></h3>                                
+                                <h3 class="typ-h3 mb-0">組合結果<span class="typ-small">（不會因每分鐘刷新被清空）</span></h3>
                             </div>
                             <div class="bingo-combo-result-list" id="userComboResults"></div>
                         </section>
