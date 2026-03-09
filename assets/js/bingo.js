@@ -1,19 +1,25 @@
 /*
  * Path: assets/js/bingo.js
- * 說明：賓果賓果分析頁控制，負責最新一期、熱冷號分析、未出現期數、最佳組合與歷史開獎。
+ * 說明：賓果賓果分析頁 v2 控制，負責最新開獎、系統統計分析、使用者自選組合與歷史開獎。
  */
 
 (function () {
     'use strict';
 
     var state = {
-        analysisRange: 10,
-        comboStar: 5,
-        comboHour: 3,
-        comboSelected: [],
-        comboRecommended: [],
-        comboHistory: []
+        analysisRange: 100,
+        analysisStar: 5,
+        analysisData: null,
+
+        userStar: 5,
+        userSelectedNumbers: [],
+        userComboList: [],
+
+        latestData: null,
+        historyData: []
     };
+
+    var analysisTimer = null;
 
     function $(id) {
         return document.getElementById(id);
@@ -77,36 +83,34 @@
         return '<span class="' + cls + '"' + attrHtml + '>' + escapeHtml(pad(n)) + '</span>';
     }
 
-    function rankedBall(item, valueKey, ballClass) {
+    function rankedBall(item, valueKey, ballClass, suffix) {
         var number = item && item.number != null ? parseInt(item.number, 10) : 0;
         var value = item && item[valueKey] != null ? item[valueKey] : '--';
 
-        if (!number) {
-            return '';
-        }
+        if (!number) return '';
 
         return (
             '<div class="ball-stat">' +
             ball(number, ballClass) +
-            '<span class="typ-small">× ' + escapeHtml(value) + '</span>' +
+            '<span class="typ-small">' + escapeHtml(value) + (suffix ? ' ' + escapeHtml(suffix) : '') + '</span>' +
             '</div>'
         );
     }
 
-    function missBall(item) {
-        var number = item && item.number != null ? parseInt(item.number, 10) : 0;
-        var miss = item && item.miss != null ? item.miss : '--';
+    function renderTagList(id, rows, formatter) {
+        var el = $(id);
+        if (!el) return;
 
-        if (!number) {
-            return '';
+        rows = safeArray(rows);
+
+        if (!rows.length) {
+            el.innerHTML = '<div class="typ-small">無資料</div>';
+            return;
         }
 
-        return (
-            '<div class="ball-stat">' +
-            ball(number, 'ball-miss') +
-            '<span class="typ-small">' + escapeHtml(miss) + ' 期</span>' +
-            '</div>'
-        );
+        el.innerHTML = rows.map(function (row) {
+            return '<div class="bingo-tag-item">' + formatter(row) + '</div>';
+        }).join('');
     }
 
     async function fetchApi(url) {
@@ -136,21 +140,36 @@
         }
     }
 
-    function setActiveRangeButton(range) {
-        document.querySelectorAll('#analysisRangeButtons .filter-btn').forEach(function (btn) {
-            var btnRange = parseInt(btn.getAttribute('data-range') || '0', 10);
-            var active = btnRange === range;
+    function combination(arr, k) {
+        var result = [];
 
-            btn.classList.toggle('is-active', active);
-            btn.classList.toggle('btn--primary', active);
-            btn.classList.toggle('btn--secondary', !active);
-        });
+        function helper(start, path) {
+            if (path.length === k) {
+                result.push(path.slice());
+                return;
+            }
+
+            for (var i = start; i < arr.length; i++) {
+                path.push(arr[i]);
+                helper(i + 1, path);
+                path.pop();
+            }
+        }
+
+        if (k <= 0 || k > arr.length) {
+            return [];
+        }
+
+        helper(0, []);
+        return result;
     }
 
-    /* 最新一期 */
+    /* 第1區：最新開獎 */
     async function loadLatest() {
         var json = await fetchApi('api/bingo_latest.php');
         var data = json.data || {};
+
+        state.latestData = data;
 
         safeSetText('latestIssue', data.issue_no || data.draw_term || '--');
         safeSetText('latestTime', data.draw_time || '--');
@@ -163,243 +182,251 @@
         );
     }
 
-    /* 熱冷號 / 統計 / 未出現期數 */
+    /* 第2區：系統統計分析 */
     async function loadAnalysis() {
-        var url = 'api/bingo_analysis.php?range=' + encodeURIComponent(state.analysisRange);
-        var json = await fetchApi(url);
-        var data = json.data || {};
-
-        safeSetText('statOddCount', data.stats && data.stats.odd_count != null ? data.stats.odd_count : '--');
-        safeSetText('statEvenCount', data.stats && data.stats.even_count != null ? data.stats.even_count : '--');
-        safeSetText('statLowCount', data.stats && data.stats.low_count != null ? data.stats.low_count : '--');
-        safeSetText('statHighCount', data.stats && data.stats.high_count != null ? data.stats.high_count : '--');
-
-        renderHotCold('hotList', data.hot_top10 || [], 'hit_count', 'ball-hot');
-        renderHotCold('coldList', data.cold_top10 || [], 'hit_count', 'ball-cold');
-        renderMiss('missList', data.miss_top10 || []);
-
-        setActiveRangeButton(state.analysisRange);
-    }
-
-    function renderHotCold(id, list, valueKey, ballClass) {
-        var el = $(id);
-        if (!el) return;
-
-        list = safeArray(list);
-
-        if (!list.length) {
-            el.innerHTML = '<div class="typ-small">無資料</div>';
-            return;
-        }
-
-        el.innerHTML = list.map(function (item) {
-            return rankedBall(item, valueKey, ballClass);
-        }).join('');
-    }
-
-    function renderMiss(id, list) {
-        var el = $(id);
-        if (!el) return;
-
-        list = safeArray(list);
-
-        if (!list.length) {
-            el.innerHTML = '<div class="typ-small">無資料</div>';
-            return;
-        }
-
-        el.innerHTML = list.map(function (item) {
-            return missBall(item);
-        }).join('');
-    }
-
-    /* 最佳組合 */
-    async function loadComboRecommendation() {
         var url =
-            'api/bingo_analysis.php?mode=combo' +
-            '&hours=' + encodeURIComponent(state.comboHour) +
-            '&star=' + encodeURIComponent(state.comboStar);
+            'api/bingo_analysis.php?range=' + encodeURIComponent(state.analysisRange) +
+            '&star=' + encodeURIComponent(state.analysisStar);
 
         var json = await fetchApi(url);
         var data = json.data || {};
 
-        state.comboRecommended = uniqueNumbers(data.recommended_numbers || [], state.comboStar);
-        state.comboSelected = uniqueNumbers(
-            (state.comboSelected && state.comboSelected.length ? state.comboSelected : state.comboRecommended),
-            state.comboStar
-        );
-        state.comboHistory = safeArray(data.trace_list);
+        state.analysisData = data;
 
-        renderComboBoard();
-        renderComboSelected();
-        renderComboStats(data.hit_stats || null, state.comboHistory);
-        renderComboTrace(state.comboHistory);
+        renderAnalysis(data);
     }
 
-    function renderComboBoard() {
-        var el = $('comboBallBoard');
+    function renderAnalysis(data) {
+        data = data || {};
+
+        safeSetText('statOddCount', data.odd_even_stats && data.odd_even_stats.odd_count != null ? data.odd_even_stats.odd_count : '--');
+        safeSetText('statEvenCount', data.odd_even_stats && data.odd_even_stats.even_count != null ? data.odd_even_stats.even_count : '--');
+        safeSetText('statSmallCount', data.big_small_stats && data.big_small_stats.small_count != null ? data.big_small_stats.small_count : '--');
+        safeSetText('statBigCount', data.big_small_stats && data.big_small_stats.big_count != null ? data.big_small_stats.big_count : '--');
+
+        renderBallStatList('hotList', data.hot_top10 || [], 'hit_count', 'ball-hot', '次');
+        renderBallStatList('coldList', data.cold_top10 || [], 'hit_count', 'ball-cold', '次');
+        renderBallStatList('missList', data.miss_top10 || [], 'miss', 'ball-miss', '期');
+        renderBallStatList('streakList', data.streak_top10 || [], 'streak', 'ball-selected', '期');
+        renderBallStatList('uptrendList', data.uptrend_top10 || [], 'uptrend_value', 'ball-hot', '');
+        renderBallStatList('downtrendList', data.downtrend_top10 || [], 'downtrend_value', 'ball-cold', '');
+
+        renderTagList('pairStatsList', data.pair_stats || [], function (row) {
+            return '<span class="typ-body">' + escapeHtml(row.pair || '--') + '</span>' +
+                '<span class="typ-small"> ' + escapeHtml(row.count || 0) + ' 次</span>';
+        });
+
+        renderTagList('tailStatsList', data.tail_stats || [], function (row) {
+            return '<span class="typ-body">尾 ' + escapeHtml(row.tail || 0) + '</span>' +
+                '<span class="typ-small"> ' + escapeHtml(row.count || 0) + ' 次</span>';
+        });
+
+        safeSetText('analysisRecommendTitle', '推薦 ' + escapeHtml(data.star || state.analysisStar) + ' 星');
+
+        safeSetHtml(
+            'analysisRecommendedNumbers',
+            safeArray(data.recommended_numbers).length
+                ? safeArray(data.recommended_numbers).map(function (n) { return ball(n, 'ball-active'); }).join('')
+                : '<span class="typ-small">無資料</span>'
+        );
+
+        renderRecommendedReasons(data.recommended_reasons || []);
+        renderAnalysisHitSummary(data.hit_summary || {}, data.star || state.analysisStar);
+    }
+
+    function renderBallStatList(id, list, valueKey, ballClass, suffix) {
+        var el = $(id);
+        if (!el) return;
+
+        list = safeArray(list);
+
+        if (!list.length) {
+            el.innerHTML = '<div class="typ-small">無資料</div>';
+            return;
+        }
+
+        el.innerHTML = list.map(function (item) {
+            return rankedBall(item, valueKey, ballClass, suffix);
+        }).join('');
+    }
+
+    function renderRecommendedReasons(list) {
+        var el = $('analysisRecommendedReasons');
+        if (!el) return;
+
+        list = safeArray(list);
+
+        if (!list.length) {
+            el.innerHTML = '<div class="typ-small">無資料</div>';
+            return;
+        }
+
+        el.innerHTML = list.map(function (row) {
+            return (
+                '<div class="bingo-reason-item">' +
+                '<div class="bingo-reason-ball">' + ball(row.number, 'ball-active') + '</div>' +
+                '<div class="bingo-reason-text typ-small">' + escapeHtml(safeArray(row.reasons).join('、')) + '</div>' +
+                '</div>'
+            );
+        }).join('');
+    }
+
+    function renderAnalysisHitSummary(summary, star) {
+        var el = $('analysisHitSummary');
         if (!el) return;
 
         var html = [];
+        var i;
 
-        for (var n = 1; n <= 80; n++) {
-            var isSelected = state.comboSelected.indexOf(n) !== -1;
-            var isRecommended = state.comboRecommended.indexOf(n) !== -1;
-            var cls = 'ball-sm';
-
-            if (isSelected) {
-                cls += ' ball-selected';
-            } else if (isRecommended) {
-                cls += ' ball-active';
-            }
-
+        for (i = parseInt(star, 10) || 0; i >= 0; i--) {
             html.push(
-                ball(n, cls, '', {
-                    'data-number': n,
-                    'data-role': 'combo-ball'
-                })
+                '<div class="bingo-hit-row">' +
+                '<span class="typ-body">命中 ' + escapeHtml(i) + ' 星</span>' +
+                '<strong>' + escapeHtml(summary[String(i)] || 0) + '</strong>' +
+                '</div>'
             );
         }
 
         el.innerHTML = html.join('');
     }
 
-    function renderComboSelected() {
-        var list = uniqueNumbers(state.comboSelected, state.comboStar);
+    /* 第3區：使用者自選組合 */
+    function renderUserBallBoard() {
+        var el = $('userBallBoard');
+        if (!el) return;
 
+        var html = [];
+        var i;
+
+        for (i = 1; i <= 80; i++) {
+            var isSelected = state.userSelectedNumbers.indexOf(i) !== -1;
+            html.push(
+                ball(
+                    i,
+                    isSelected ? 'ball-selected ball-sm' : 'ball-sm',
+                    '',
+                    {
+                        'data-number': i,
+                        'data-role': 'user-ball'
+                    }
+                )
+            );
+        }
+
+        el.innerHTML = html.join('');
+    }
+
+    function renderUserSelectedBalls() {
         safeSetHtml(
-            'comboSelectedBalls',
-            list.length
-                ? list.map(function (n) { return ball(n, 'ball-selected'); }).join('')
+            'userSelectedBalls',
+            state.userSelectedNumbers.length
+                ? state.userSelectedNumbers.map(function (n) { return ball(n, 'ball-selected'); }).join('')
                 : '<span class="typ-small">尚未選取號碼</span>'
         );
     }
 
-    function renderComboStats(hitStats, traceList) {
-        var el = $('comboHitStats');
+    function renderUserHitTrace() {
+        var el = $('userHitTrace');
         if (!el) return;
 
-        var stats = {};
-        var html = [];
-        var i;
+        var sourceList = [];
 
-        if (hitStats && typeof hitStats === 'object') {
-            for (i = state.comboStar; i >= 0; i--) {
-                stats[i] = parseInt(hitStats[String(i)] || hitStats[i] || 0, 10) || 0;
-            }
+        if (state.analysisData && safeArray(state.analysisData.hit_trace).length) {
+            sourceList = safeArray(state.analysisData.hit_trace);
         } else {
-            safeArray(traceList).forEach(function (row) {
-                var hit = parseInt(row.hit_count || 0, 10);
-                if (hit < 0) hit = 0;
-                if (hit > state.comboStar) hit = state.comboStar;
-                stats[hit] = (stats[hit] || 0) + 1;
-            });
-
-            for (i = state.comboStar; i >= 0; i--) {
-                stats[i] = stats[i] || 0;
-            }
-        }
-
-        for (i = state.comboStar; i >= 0; i--) {
-            html.push(
-                '<div class="bingo-hit-row">' +
-                '<span class="typ-body">' + escapeHtml('命中 ' + i + ' 星') + '</span>' +
-                '<strong>' + escapeHtml(stats[i]) + '</strong>' +
-                '</div>'
-            );
-        }
-
-        el.innerHTML = html.join('');
-    }
-
-    function renderComboTrace(traceList) {
-        var el = $('comboTraceList');
-        if (!el) return;
-
-        traceList = safeArray(traceList);
-
-        if (!traceList.length) {
             el.innerHTML = '<div class="typ-small">無資料</div>';
             return;
         }
 
-        el.innerHTML = traceList.map(function (row) {
-            var issueNo = row.issue_no || row.draw_term || '--';
-            var hitCount = parseInt(row.hit_count || 0, 10);
-            var stars = '';
+        if (!state.userSelectedNumbers.length) {
+            el.innerHTML = '<div class="typ-small">請先選號</div>';
+            return;
+        }
 
-            for (var i = 0; i < hitCount; i++) {
-                stars += '★';
-            }
-            if (!stars) {
-                stars = '0星';
-            }
+        el.innerHTML = sourceList.map(function (row) {
+            var drawNumbers = normalizeNumbers(row.numbers || []);
+            var hit = 0;
+
+            state.userSelectedNumbers.forEach(function (n) {
+                if (drawNumbers.indexOf(n) !== -1) {
+                    hit++;
+                }
+            });
 
             return (
                 '<div class="bingo-trace-row">' +
-                '<span class="typ-body">第 ' + escapeHtml(issueNo) + ' 期</span>' +
-                '<span class="typ-small">' + escapeHtml(stars) + '</span>' +
+                '<span class="typ-body">第 ' + escapeHtml(row.draw_term || '--') + ' 期</span>' +
+                '<span class="typ-small">命中 ' + escapeHtml(hit) + ' 星</span>' +
                 '</div>'
             );
         }).join('');
     }
 
-    function toggleComboNumber(number) {
+    function renderUserComboResults() {
+        var el = $('userComboResults');
+        if (!el) return;
+
+        if (!state.userComboList.length) {
+            el.innerHTML = '<div class="typ-small">尚未產生組合</div>';
+            return;
+        }
+
+        el.innerHTML = state.userComboList.map(function (combo) {
+            return (
+                '<div class="bingo-combo-result-row">' +
+                combo.map(function (n) { return ball(n, 'ball-active'); }).join('') +
+                '</div>'
+            );
+        }).join('');
+    }
+
+    function toggleUserNumber(number) {
         number = parseInt(number, 10);
         if (!number || number < 1 || number > 80) return;
 
-        var idx = state.comboSelected.indexOf(number);
+        var idx = state.userSelectedNumbers.indexOf(number);
 
         if (idx !== -1) {
-            state.comboSelected.splice(idx, 1);
+            state.userSelectedNumbers.splice(idx, 1);
         } else {
-            if (state.comboSelected.length >= state.comboStar) {
-                state.comboSelected.shift();
+            if (state.userSelectedNumbers.length >= 10) {
+                alert('最多只能選 10 顆');
+                return;
             }
-            state.comboSelected.push(number);
+            state.userSelectedNumbers.push(number);
         }
 
-        state.comboSelected = uniqueNumbers(state.comboSelected, state.comboStar);
-        renderComboBoard();
-        renderComboSelected();
-        recalcComboTraceFromCurrentSelection();
+        state.userSelectedNumbers = uniqueNumbers(state.userSelectedNumbers, 10);
+        renderUserBallBoard();
+        renderUserSelectedBalls();
+        renderUserHitTrace();
     }
 
-    function recalcComboTraceFromCurrentSelection() {
-        var selected = uniqueNumbers(state.comboSelected, state.comboStar);
-        var baseList = safeArray(state.comboHistory);
-        var mapped = [];
-        var stats = {};
+    function buildUserCombos() {
+        if (state.userSelectedNumbers.length <= state.userStar) {
+            alert('選號數需大於玩法星數才可提供組合號碼');
+            return;
+        }
 
-        baseList.forEach(function (row) {
-            var numbers = normalizeNumbers(row.numbers || []);
-            var hit = 0;
-
-            selected.forEach(function (n) {
-                if (numbers.indexOf(n) !== -1) {
-                    hit++;
-                }
-            });
-
-            mapped.push({
-                issue_no: row.issue_no || row.draw_term || '--',
-                hit_count: hit,
-                numbers: numbers
-            });
-
-            stats[hit] = (stats[hit] || 0) + 1;
-        });
-
-        renderComboStats(stats, mapped);
-        renderComboTrace(mapped);
+        var combos = combination(state.userSelectedNumbers, state.userStar);
+        state.userComboList = combos;
+        renderUserComboResults();
     }
 
-    /* 歷史 */
+    function clearUserCombos() {
+        state.userComboList = [];
+        renderUserComboResults();
+    }
+
+    /* 第4區：歷史開獎 */
     async function loadHistoryByLimit(limit) {
         limit = parseInt(limit, 10) || 10;
 
         var json = await fetchApi('api/bingo_history.php?limit=' + encodeURIComponent(limit));
-        renderHistoryList((json.data && json.data.list) ? json.data.list : []);
+        var list = (json.data && json.data.list) ? json.data.list : [];
+
+        state.historyData = list;
+        renderHistoryList(list);
     }
 
     async function loadHistoryByTermRange(startTerm, endTerm) {
@@ -408,7 +435,10 @@
             '&end_term=' + encodeURIComponent(endTerm);
 
         var json = await fetchApi(url);
-        renderHistoryList((json.data && json.data.list) ? json.data.list : []);
+        var list = (json.data && json.data.list) ? json.data.list : [];
+
+        state.historyData = list;
+        renderHistoryList(list);
     }
 
     function renderHistoryList(list) {
@@ -439,59 +469,73 @@
     }
 
     /* bind */
-    function bindAnalysisRange() {
-        document.querySelectorAll('#analysisRangeButtons .filter-btn').forEach(function (btn) {
-            btn.addEventListener('click', async function () {
-                var range = parseInt(btn.getAttribute('data-range') || '10', 10) || 10;
-                state.analysisRange = range;
+    function bindAnalysisControls() {
+        if ($('analysisRangeInput')) {
+            $('analysisRangeInput').addEventListener('input', function () {
+                var value = parseInt(this.value || '100', 10);
+
+                if (!value || value < 10) value = 10;
+                if (value > 500) value = 500;
+
+                state.analysisRange = value;
+
+                if (analysisTimer) {
+                    clearTimeout(analysisTimer);
+                }
+
+                analysisTimer = setTimeout(async function () {
+                    try {
+                        await loadAnalysis();
+                        renderUserHitTrace();
+                    } catch (err) {
+                        console.error('loadAnalysis error:', err);
+                    }
+                }, 300);
+            });
+        }
+
+        if ($('analysisStarSelect')) {
+            $('analysisStarSelect').addEventListener('change', async function () {
+                state.analysisStar = parseInt(this.value || '5', 10) || 5;
 
                 try {
                     await loadAnalysis();
+                    renderUserHitTrace();
                 } catch (err) {
                     console.error('loadAnalysis error:', err);
-                    safeSetHtml('hotList', '<div class="typ-small">無資料</div>');
-                    safeSetHtml('coldList', '<div class="typ-small">無資料</div>');
-                    safeSetHtml('missList', '<div class="typ-small">無資料</div>');
                 }
             });
-        });
+        }
     }
 
-    function bindComboControls() {
-        if ($('comboStarSelect')) {
-            $('comboStarSelect').addEventListener('change', async function () {
-                state.comboStar = parseInt(this.value || '5', 10) || 5;
-                state.comboSelected = [];
-
-                try {
-                    await loadComboRecommendation();
-                } catch (err) {
-                    console.error('loadComboRecommendation error:', err);
-                }
+    function bindUserControls() {
+        if ($('userStarSelect')) {
+            $('userStarSelect').addEventListener('change', function () {
+                state.userStar = parseInt(this.value || '5', 10) || 5;
+                renderUserHitTrace();
             });
         }
 
-        if ($('comboHourSelect')) {
-            $('comboHourSelect').addEventListener('change', async function () {
-                state.comboHour = parseInt(this.value || '3', 10) || 3;
-                state.comboSelected = [];
-
-                try {
-                    await loadComboRecommendation();
-                } catch (err) {
-                    console.error('loadComboRecommendation error:', err);
-                }
-            });
-        }
-
-        if ($('comboBallBoard')) {
-            $('comboBallBoard').addEventListener('click', function (e) {
+        if ($('userBallBoard')) {
+            $('userBallBoard').addEventListener('click', function (e) {
                 var target = e.target;
-                if (!target || !target.matches('[data-role="combo-ball"]')) {
+                if (!target || !target.matches('[data-role="user-ball"]')) {
                     return;
                 }
 
-                toggleComboNumber(target.getAttribute('data-number'));
+                toggleUserNumber(target.getAttribute('data-number'));
+            });
+        }
+
+        if ($('btnBuildUserCombos')) {
+            $('btnBuildUserCombos').addEventListener('click', function () {
+                buildUserCombos();
+            });
+        }
+
+        if ($('btnClearUserCombos')) {
+            $('btnClearUserCombos').addEventListener('click', function () {
+                clearUserCombos();
             });
         }
     }
@@ -533,17 +577,25 @@
 
     /* init */
     async function init() {
-        bindAnalysisRange();
-        bindComboControls();
+        bindAnalysisControls();
+        bindUserControls();
         bindHistorySearch();
 
-        if ($('comboStarSelect')) {
-            state.comboStar = parseInt($('comboStarSelect').value || '5', 10) || 5;
+        if ($('analysisRangeInput')) {
+            state.analysisRange = parseInt($('analysisRangeInput').value || '100', 10) || 100;
         }
 
-        if ($('comboHourSelect')) {
-            state.comboHour = parseInt($('comboHourSelect').value || '3', 10) || 3;
+        if ($('analysisStarSelect')) {
+            state.analysisStar = parseInt($('analysisStarSelect').value || '5', 10) || 5;
         }
+
+        if ($('userStarSelect')) {
+            state.userStar = parseInt($('userStarSelect').value || '5', 10) || 5;
+        }
+
+        renderUserBallBoard();
+        renderUserSelectedBalls();
+        renderUserComboResults();
 
         try {
             await loadLatest();
@@ -555,19 +607,12 @@
             await loadAnalysis();
         } catch (err) {
             console.error('loadAnalysis error:', err);
-            safeSetHtml('hotList', '<div class="typ-small">無資料</div>');
-            safeSetHtml('coldList', '<div class="typ-small">無資料</div>');
-            safeSetHtml('missList', '<div class="typ-small">無資料</div>');
         }
 
         try {
-            await loadComboRecommendation();
+            renderUserHitTrace();
         } catch (err) {
-            console.error('loadComboRecommendation error:', err);
-            safeSetHtml('comboBallBoard', '<div class="typ-small">無資料</div>');
-            safeSetHtml('comboSelectedBalls', '<div class="typ-small">無資料</div>');
-            safeSetHtml('comboHitStats', '<div class="typ-small">無資料</div>');
-            safeSetHtml('comboTraceList', '<div class="typ-small">無資料</div>');
+            console.error('renderUserHitTrace error:', err);
         }
 
         try {
@@ -580,10 +625,26 @@
         setInterval(async function () {
             try {
                 await loadLatest();
-                await loadAnalysis();
-                await loadComboRecommendation();
             } catch (err) {
-                console.error('auto refresh error:', err);
+                console.error('auto loadLatest error:', err);
+            }
+
+            try {
+                await loadAnalysis();
+            } catch (err) {
+                console.error('auto loadAnalysis error:', err);
+            }
+
+            try {
+                renderUserHitTrace();
+            } catch (err) {
+                console.error('auto renderUserHitTrace error:', err);
+            }
+
+            try {
+                await loadHistoryByLimit(10);
+            } catch (err) {
+                console.error('auto loadHistoryByLimit error:', err);
             }
         }, 60000);
     }
