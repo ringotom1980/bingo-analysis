@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /*
  * Path: bingo.php
- * 說明：賓果賓果分析頁，包含最新一期、熱冷號統計、未出現期數、最佳組合與歷史開獎。
+ * 說明：賓果賓果分析頁 v2，包含最新開獎、系統統計分析、使用者自選組合與歷史開獎。
  */
 
 require_once __DIR__ . '/services/auth_service.php';
@@ -30,13 +30,13 @@ require __DIR__ . '/partials/navbar.php';
         <section class="section">
             <div class="dashboard-grid bingo-grid">
 
-                <!-- 最新一期 -->
+                <!-- 第1區：最新開獎 -->
                 <article class="card bingo-card bingo-card--latest">
                     <div class="card__head">
-                        <h2 class="typ-h2 mb-0">最新一期</h2>
+                        <h2 class="typ-h2 mb-0">最新開獎</h2>
                     </div>
 
-                    <div class="card__body">
+                    <div class="card__body stack-4">
                         <div class="dashboard-kpi">
                             <div>
                                 <div class="typ-small">期數</div>
@@ -53,22 +53,90 @@ require __DIR__ . '/partials/navbar.php';
                     </div>
                 </article>
 
-                <!-- 熱號 / 冷號 / 統計 -->
+                <!-- 第2區：系統統計分析 -->
                 <article class="card bingo-card bingo-card--analysis">
                     <div class="card__head">
                         <div class="bingo-head-row">
-                            <h2 class="typ-h2 mb-0">熱號 / 冷號分析</h2>
+                            <h2 class="typ-h2 mb-0">系統統計分析</h2>
 
-                            <div class="filter-row" id="analysisRangeButtons">
-                                <button class="btn btn--primary filter-btn is-active" data-range="10" type="button">最近10期</button>
-                                <button class="btn btn--secondary filter-btn" data-range="30" type="button">最近30期</button>
-                                <button class="btn btn--secondary filter-btn" data-range="50" type="button">最近50期</button>
-                                <button class="btn btn--secondary filter-btn" data-range="100" type="button">最近100期</button>
+                            <div class="bingo-analysis-controls">
+                                <div class="bingo-control-group">
+                                    <label class="typ-small" for="analysisRangeInput">分析期數</label>
+                                    <input
+                                        type="number"
+                                        class="input bingo-analysis-input"
+                                        id="analysisRangeInput"
+                                        min="10"
+                                        max="500"
+                                        step="1"
+                                        value="100">
+                                </div>
+
+                                <div class="bingo-control-group">
+                                    <label class="typ-small" for="analysisStarSelect">推薦星數</label>
+                                    <select class="select bingo-select" id="analysisStarSelect">
+                                        <option value="1">1星</option>
+                                        <option value="2">2星</option>
+                                        <option value="3">3星</option>
+                                        <option value="4">4星</option>
+                                        <option value="5" selected>5星</option>
+                                        <option value="6">6星</option>
+                                        <option value="7">7星</option>
+                                        <option value="8">8星</option>
+                                        <option value="9">9星</option>
+                                        <option value="10">10星</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card__body stack-4">
+
+                        <div class="bingo-triple-grid">
+                            <section class="stack-3">
+                                <div class="bingo-subhead">
+                                    <h3 class="typ-h3 mb-0">熱號 TOP10</h3>
+                                    <span class="typ-small">查詢區間內出現最多</span>
+                                </div>
+                                <div class="balls-wrap" id="hotList"></div>
+                            </section>
+
+                            <section class="stack-3">
+                                <div class="bingo-subhead">
+                                    <h3 class="typ-h3 mb-0">冷號 TOP10</h3>
+                                    <span class="typ-small">查詢區間內出現最少</span>
+                                </div>
+                                <div class="balls-wrap" id="coldList"></div>
+                            </section>
+
+                            <section class="stack-3">
+                                <div class="bingo-subhead">
+                                    <h3 class="typ-h3 mb-0">未出現期數 TOP10</h3>
+                                    <span class="typ-small">距今連續未出現最多</span>
+                                </div>
+                                <div class="balls-wrap" id="missList"></div>
+                            </section>
+                        </div>
+
+                        <div class="bingo-dual-grid">
+                            <section class="stack-3">
+                                <div class="bingo-subhead">
+                                    <h3 class="typ-h3 mb-0">連續出現期數 TOP10</h3>
+                                    <span class="typ-small">由最新期往前連續出現</span>
+                                </div>
+                                <div class="balls-wrap" id="streakList"></div>
+                            </section>
+
+                            <section class="stack-3">
+                                <div class="bingo-subhead">
+                                    <h3 class="typ-h3 mb-0">尾數分析</h3>
+                                    <span class="typ-small">尾數 0~9 統計</span>
+                                </div>
+                                <div class="bingo-tag-list" id="tailStatsList"></div>
+                            </section>
+                        </div>
+
                         <div class="bingo-stats-grid">
                             <div class="bingo-stat-box">
                                 <div class="typ-small">單號累計次數</div>
@@ -81,114 +149,133 @@ require __DIR__ . '/partials/navbar.php';
                             </div>
 
                             <div class="bingo-stat-box">
-                                <div class="typ-small">1-40 累計次數</div>
-                                <div class="typ-h3" id="statLowCount">--</div>
+                                <div class="typ-small">1~40 累計次數</div>
+                                <div class="typ-h3" id="statSmallCount">--</div>
                             </div>
 
                             <div class="bingo-stat-box">
-                                <div class="typ-small">41-80 累計次數</div>
-                                <div class="typ-h3" id="statHighCount">--</div>
+                                <div class="typ-small">41~80 累計次數</div>
+                                <div class="typ-h3" id="statBigCount">--</div>
                             </div>
                         </div>
 
                         <div class="bingo-dual-grid">
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">熱號 TOP10</h3>
-                                    <span class="typ-small">查詢區間內累計最多</span>
+                                    <h3 class="typ-h3 mb-0">升溫號 TOP10</h3>
+                                    <span class="typ-small">近10期相對近30期更活躍</span>
                                 </div>
-                                <div class="balls-wrap" id="hotList"></div>
+                                <div class="balls-wrap" id="uptrendList"></div>
                             </section>
 
                             <section class="stack-3">
                                 <div class="bingo-subhead">
-                                    <h3 class="typ-h3 mb-0">冷號 TOP10</h3>
-                                    <span class="typ-small">查詢區間內累計最少</span>
+                                    <h3 class="typ-h3 mb-0">降溫號 TOP10</h3>
+                                    <span class="typ-small">近10期相對近30期轉弱</span>
                                 </div>
-                                <div class="balls-wrap" id="coldList"></div>
+                                <div class="balls-wrap" id="downtrendList"></div>
                             </section>
                         </div>
+
+                        <section class="stack-3">
+                            <div class="bingo-subhead">
+                                <h3 class="typ-h3 mb-0">連號分析</h3>
+                                <span class="typ-small">常見連號組合</span>
+                            </div>
+                            <div class="bingo-tag-list" id="pairStatsList"></div>
+                        </section>
+
+                        <section class="stack-3 bingo-recommend-block">
+                            <div class="bingo-subhead">
+                                <h3 class="typ-h3 mb-0">系統推薦最佳組合</h3>
+                                <span class="typ-small" id="analysisRecommendTitle">推薦 5 星</span>
+                            </div>
+
+                            <div class="balls-wrap" id="analysisRecommendedNumbers"></div>
+
+                            <div class="bingo-reason-list" id="analysisRecommendedReasons"></div>
+
+                            <div class="bingo-hit-stats" id="analysisHitSummary"></div>
+                        </section>
+
                     </div>
                 </article>
 
-                <!-- 未出現期數 -->
-                <article class="card bingo-card bingo-card--miss">
-                    <div class="card__head">
-                        <h2 class="typ-h2 mb-0">未出現期數 TOP10</h2>
-                    </div>
-
-                    <div class="card__body">
-                        <div class="balls-wrap" id="missList"></div>
-                    </div>
-                </article>
-
-                <!-- 最佳組合 -->
-                <article class="card bingo-card bingo-card--combo">
+                <!-- 第3區：使用者自選組合 -->
+                <article class="card bingo-card bingo-card--user">
                     <div class="card__head">
                         <div class="bingo-head-row">
-                            <h2 class="typ-h2 mb-0">最佳組合</h2>
+                            <h2 class="typ-h2 mb-0">使用者自選組合</h2>
 
-                            <div class="bingo-combo-controls">
-                                <select class="select bingo-select" id="comboStarSelect">
-                                    <option value="1">1星</option>
-                                    <option value="2">2星</option>
-                                    <option value="3">3星</option>
-                                    <option value="4">4星</option>
-                                    <option value="5" selected>5星</option>
-                                    <option value="6">6星</option>
-                                    <option value="7">7星</option>
-                                    <option value="8">8星</option>
-                                    <option value="9">9星</option>
-                                    <option value="10">10星</option>
-                                </select>
-
-                                <select class="select bingo-select" id="comboHourSelect">
-                                    <option value="1">近1小時</option>
-                                    <option value="2">近2小時</option>
-                                    <option value="3" selected>近3小時</option>
-                                    <option value="4">近4小時</option>
-                                    <option value="5">近5小時</option>
-                                </select>
+                            <div class="bingo-analysis-controls">
+                                <div class="bingo-control-group">
+                                    <label class="typ-small" for="userStarSelect">玩法星數</label>
+                                    <select class="select bingo-select" id="userStarSelect">
+                                        <option value="1">1星</option>
+                                        <option value="2">2星</option>
+                                        <option value="3">3星</option>
+                                        <option value="4">4星</option>
+                                        <option value="5" selected>5星</option>
+                                        <option value="6">6星</option>
+                                        <option value="7">7星</option>
+                                        <option value="8">8星</option>
+                                        <option value="9">9星</option>
+                                        <option value="10">10星</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card__body stack-4">
+
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">號碼盤</h3>
-                                <span class="typ-small">可直接點擊彩球調整最終組合</span>
+                                <h3 class="typ-h3 mb-0">球號選擇區</h3>
+                                <span class="typ-small">可選 1~80，最多選 10 顆</span>
                             </div>
-                            <div class="balls-wrap bingo-ball-board" id="comboBallBoard"></div>
+                            <div class="balls-wrap bingo-ball-board" id="userBallBoard"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">最終號碼</h3>
-                                <span class="typ-small">依星數限制顯示目前組合</span>
+                                <h3 class="typ-h3 mb-0">已選球號</h3>
+                                <span class="typ-small">不會因每分鐘刷新被清空</span>
                             </div>
-                            <div class="balls-wrap" id="comboSelectedBalls"></div>
+                            <div class="balls-wrap" id="userSelectedBalls"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">命中統計</h3>
-                                <span class="typ-small">回朔查詢期間內各期命中星數統計</span>
+                                <h3 class="typ-h3 mb-0">命中分析</h3>
+                                <span class="typ-small">依目前已選球號比對最近開獎</span>
                             </div>
-                            <div class="bingo-hit-stats" id="comboHitStats"></div>
+                            <div class="bingo-trace-list" id="userHitTrace"></div>
                         </section>
 
                         <section class="stack-3">
                             <div class="bingo-subhead">
-                                <h3 class="typ-h3 mb-0">回朔結果</h3>
-                                <span class="typ-small">僅顯示期數與命中星數</span>
+                                <h3 class="typ-h3 mb-0">組合工具</h3>
+                                <span class="typ-small">當選號數大於玩法星數時可展開</span>
                             </div>
-                            <div class="bingo-trace-list" id="comboTraceList"></div>
+                            <div class="bingo-tool-row">
+                                <button class="btn btn--primary" id="btnBuildUserCombos" type="button">提供組合號碼</button>
+                                <button class="btn btn--secondary" id="btnClearUserCombos" type="button">清除組合</button>
+                            </div>
                         </section>
+
+                        <section class="stack-3">
+                            <div class="bingo-subhead">
+                                <h3 class="typ-h3 mb-0">組合結果</h3>
+                                <span class="typ-small">不會因每分鐘刷新被清空</span>
+                            </div>
+                            <div class="bingo-combo-result-list" id="userComboResults"></div>
+                        </section>
+
                     </div>
                 </article>
 
-                <!-- 歷史開獎 -->
+                <!-- 第4區：歷史開獎 -->
                 <article class="card bingo-card bingo-card--history">
                     <div class="card__head">
                         <div class="bingo-head-row">
